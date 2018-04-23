@@ -13,6 +13,7 @@ public class SbankenClient {
     private let clientId: String
     private let secret: String
 
+    private let encoder = JSONEncoder()
     private let tokenManager: AccessTokenManager = AccessTokenManager()
     private let urlSession: SURLSessionProtocol = URLSession.shared
 
@@ -22,110 +23,142 @@ public class SbankenClient {
         return jsonDecoder
     }()
 
-    private let encoder = JSONEncoder()
-
     public init(clientId: String, secret: String) {
         self.clientId = clientId
         self.secret = secret
     }
 
-    public func accounts(userId: String, success: @escaping ([Account]) -> Void, failure: @escaping (Error?) -> Void) {
+    public func accounts(userId: String, completion: @escaping (Result<[Account], SbankenError>) -> Void) {
 
-        accessToken(clientId: clientId, secret: secret) { token in
+        accessToken(clientId: clientId, secret: secret) { result in
 
-            guard token != nil else {
-                failure(nil)
-                return
-            }
+            switch result {
+            case .failure(let error):
+                completion(.failure(SbankenError(error)))
+            case .success(let token):
 
-            let urlString = "\(Constants.baseUrl)/Bank/api/v1/Accounts/\(userId)"
-            guard let request = self.urlRequest(urlString, token: token!) else { return }
+                let urlString = "\(Constants.baseUrl)/Bank/api/v1/Accounts/\(userId)"
+                guard let request = self.urlRequest(urlString, token: token) else { return }
 
-            self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
-                guard data != nil, error == nil else {
-                    failure(error)
-                    return
-                }
+                self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
-                if let accountsResponse = try? self.decoder.decode(AccountsResponse.self, from: data!) {
-                    success(accountsResponse.items)
-                } else {
-                    failure(nil)
-                }
-            }).resume()
-        }
-    }
-
-    public func transactions(userId: String, accountNumber: String, startDate: Date, endDate: Date = Date(), index: Int = 0, length: Int = 10, success: @escaping (TransactionResponse) -> Void, failure: @escaping (Error?) -> Void) {
-        accessToken(clientId: clientId, secret: secret) { (token) in
-            guard token != nil else {
-                failure(nil)
-                return
-            }
-
-            let formatter = ISO8601DateFormatter()
-            let parameters = [
-                "index": "\(index)",
-                "length": "\(length)",
-                "startDate": formatter.string(from: startDate),
-                "endDate": formatter.string(from: endDate)
-                ] as [String : Any]
-
-            let urlString = "\(Constants.baseUrl)/Bank/api/v2/Transactions/\(userId)/\(accountNumber)"
-            guard let request = self.urlRequest(urlString, token: token!, parameters: parameters) else { return }
-
-            self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
-                guard data != nil, error == nil else {
-                    failure(error)
-                    return
-                }
-
-                if let transactionResponse = try? self.decoder.decode(TransactionResponse.self, from: data!) {
-                    success(transactionResponse)
-                } else {
-                    failure(nil)
-                }
-            }).resume()
-        }
-    }
-
-    public func transfer(userId: String, fromAccount: String, toAccount: String, message: String, amount: Float, success: @escaping (TransferResponse) -> Void, failure: @escaping (Error?) -> Void) {
-        accessToken(clientId: clientId, secret: secret) { (token) in
-            guard token != nil else {
-                failure(nil)
-                return
-            }
-
-            let urlString = "\(Constants.baseUrl)/Bank/api/v1/Transfers/\(userId)"
-            guard var request = self.urlRequest(urlString, token: token!) else { return }
-
-            let transferRequest = TransferRequest(fromAccount: fromAccount, toAccount: toAccount, message: message, amount: amount)
-
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            if let body = try? self.encoder.encode(transferRequest) {
-                request.httpBody = body
-            } else {
-                failure(nil)
-            }
-
-            self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
-                guard data != nil, error == nil else {
-                    failure(error)
-                    return
-                }
-
-                if let transferResponse = try? self.decoder.decode(TransferResponse.self, from: data!) {
-                    if transferResponse.isError {
-                        failure(nil)
-                    } else {
-                        success(transferResponse)
+                    if let error = error {
+                        completion(.failure(SbankenError(error)))
                     }
+
+                    guard let data = data else {
+                        completion(.failure(.missingNetworkResponse))
+                        return
+                    }
+
+                    if let accountsResponse = try? self.decoder.decode(AccountsResponse.self, from: data) {
+                        completion(.success(accountsResponse.items))
+                    } else {
+                        completion(.failure(.unableToDecodeNetworkResponse))
+                    }
+
+                }).resume()
+            }
+        }
+    }
+
+    public func transactions(userId: String,
+                             accountNumber: String,
+                             startDate: Date,
+                             endDate: Date = Date(),
+                             index: Int = 0,
+                             length: Int = 10,
+                             completion: @escaping (Result<TransactionResponse, SbankenError>) -> Void) {
+
+        accessToken(clientId: clientId, secret: secret) { result in
+            switch result {
+            case .failure(let error):
+                completion(.failure(SbankenError(error)))
+            case .success(let token):
+
+                let formatter = ISO8601DateFormatter()
+                let parameters = [
+                    "index": "\(index)",
+                    "length": "\(length)",
+                    "startDate": formatter.string(from: startDate),
+                    "endDate": formatter.string(from: endDate)
+                    ] as [String : Any]
+
+                let urlString = "\(Constants.baseUrl)/Bank/api/v2/Transactions/\(userId)/\(accountNumber)"
+                guard let request = self.urlRequest(urlString, token: token, parameters: parameters) else { return }
+
+                self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
+
+                    if let error = error {
+                        completion(.failure(SbankenError(error)))
+                    }
+
+                    guard let data = data else {
+                        completion(.failure(.missingNetworkResponse))
+                        return
+                    }
+
+                    if let transactionResponse = try? self.decoder.decode(TransactionResponse.self, from: data) {
+                        completion(.success(transactionResponse))
+                    } else {
+                        completion(.failure(.unableToDecodeNetworkResponse))
+                    }
+                }).resume()
+            }
+        }
+    }
+
+    public func transfer(userId: String,
+                         fromAccount: String,
+                         toAccount: String,
+                         message: String,
+                         amount: Float,
+                         completion: @escaping (Result<TransferResponse, SbankenError>) -> Void) {
+
+        accessToken(clientId: clientId, secret: secret) { result in
+
+
+            switch result {
+            case .failure(let error):
+                completion(.failure(SbankenError(error)))
+            case .success(let token):
+
+                let urlString = "\(Constants.baseUrl)/Bank/api/v1/Transfers/\(userId)"
+                guard var request = self.urlRequest(urlString, token: token) else { return }
+
+                let transferRequest = TransferRequest(fromAccount: fromAccount, toAccount: toAccount, message: message, amount: amount)
+
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                if let body = try? self.encoder.encode(transferRequest) {
+                    request.httpBody = body
                 } else {
-                    failure(nil)
+                    completion(.failure(.unableToDecodeNetworkResponse))
                 }
-            }).resume()
+
+                self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
+
+                    if let error = error {
+                        completion(.failure(SbankenError(error)))
+                    }
+
+                    guard let data = data else {
+                        completion(.failure(.missingNetworkResponse))
+                        return
+                    }
+
+                    if let transferResponse = try? self.decoder.decode(TransferResponse.self, from: data) {
+                        if transferResponse.isError {
+                            completion(.failure(SbankenError(transferResponse.errorMessage ?? "Undefined error")))
+                        } else {
+                            completion(.success(transferResponse))
+                        }
+                    } else {
+                        completion(.failure(.unableToDecodeNetworkResponse))
+                    }
+                }).resume()
+            }
         }
     }
 
@@ -144,9 +177,10 @@ public class SbankenClient {
         return request
     }
 
-    private func accessToken(clientId: String, secret: String, completion: @escaping (AccessToken?) -> Void) {
+    private func accessToken(clientId: String, secret: String, completion: @escaping (Result<AccessToken, SbankenError>) -> Void) {
+
         if tokenManager.token != nil {
-            completion(tokenManager.token!)
+            completion(.success(tokenManager.token!))
             return
         }
 
@@ -166,16 +200,22 @@ public class SbankenClient {
         request.httpBody = "grant_type=client_credentials".data(using: .utf8)
 
         self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
-            guard data != nil, error == nil else {
-                completion(nil)
+
+
+            if let error = error {
+                completion(.failure(SbankenError(error)))
+            }
+
+            guard let data = data else {
+                completion(.failure(.missingNetworkResponse))
                 return
             }
 
-            if let token = try? self.decoder.decode(AccessToken.self, from: data!) {
+            if let token = try? self.decoder.decode(AccessToken.self, from: data) {
                 self.tokenManager.token = token
+            } else {
+                completion(.failure(.unableToDecodeNetworkResponse))
             }
-
-            completion(self.tokenManager.token)
         }).resume()
     }
 }

@@ -34,6 +34,10 @@
 		13ED8FF51F8D5C7800D8A7D0 /* TransactionResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 131491F01F8C9098000B91C2 /* TransactionResponse.swift */; };
 		13F5C8421F8FE13100199987 /* MockUrlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F5C8411F8FE13100199987 /* MockUrlSession.swift */; };
 		13FEBABC1F8FEDB6004526E0 /* MockError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13FEBABB1F8FEDB6004526E0 /* MockError.swift */; };
+		1F28E185208E5B4400603ED3 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F28E184208E5B4400603ED3 /* Result.swift */; };
+		1F28E187208E67DB00603ED3 /* SbankenError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F28E186208E67DB00603ED3 /* SbankenError.swift */; };
+		1F28E188208E6C7100603ED3 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F28E184208E5B4400603ED3 /* Result.swift */; };
+		1F28E189208E6C7400603ED3 /* SbankenError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F28E186208E67DB00603ED3 /* SbankenError.swift */; };
 		8B3DD8211F8D2BEF007761E3 /* AccessTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134AF42D1F8BF80F00114652 /* AccessTokenManager.swift */; };
 		8B580FF31FCC9AC80079A2BC /* AccessToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B580FF21FCC9AC80079A2BC /* AccessToken.swift */; };
 		8B580FF51FCC9C090079A2BC /* AccountsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B580FF41FCC9C090079A2BC /* AccountsResponse.swift */; };
@@ -83,6 +87,8 @@
 		13ED8FF21F8D55DE00D8A7D0 /* DoubleShortDisplayValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoubleShortDisplayValueTests.swift; sourceTree = "<group>"; };
 		13F5C8411F8FE13100199987 /* MockUrlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockUrlSession.swift; sourceTree = "<group>"; };
 		13FEBABB1F8FEDB6004526E0 /* MockError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockError.swift; sourceTree = "<group>"; };
+		1F28E184208E5B4400603ED3 /* Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Result.swift; sourceTree = "<group>"; };
+		1F28E186208E67DB00603ED3 /* SbankenError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SbankenError.swift; sourceTree = "<group>"; };
 		8B580FF21FCC9AC80079A2BC /* AccessToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessToken.swift; sourceTree = "<group>"; };
 		8B580FF41FCC9C090079A2BC /* AccountsResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsResponse.swift; sourceTree = "<group>"; };
 		8B580FF81FCCA3AD0079A2BC /* TransferResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferResponse.swift; sourceTree = "<group>"; };
@@ -182,6 +188,7 @@
 		138E9E521F88F7D3000F8A2E /* SbankenClient */ = {
 			isa = PBXGroup;
 			children = (
+				1F28E183208E5B3600603ED3 /* Types */,
 				13074D191F90819000427720 /* Protocols */,
 				130FF63F1F8A09CC00D25F48 /* Extensions */,
 				13DDFDB01F892454009811A7 /* Helpers */,
@@ -224,6 +231,15 @@
 				13FEBABB1F8FEDB6004526E0 /* MockError.swift */,
 			);
 			path = Mocks;
+			sourceTree = "<group>";
+		};
+		1F28E183208E5B3600603ED3 /* Types */ = {
+			isa = PBXGroup;
+			children = (
+				1F28E184208E5B4400603ED3 /* Result.swift */,
+				1F28E186208E67DB00603ED3 /* SbankenError.swift */,
+			);
+			path = Types;
 			sourceTree = "<group>";
 		};
 		8B6AC949201E6B6A002C3742 /* Frameworks */ = {
@@ -388,8 +404,10 @@
 				8B580FF71FCC9D350079A2BC /* AccountsResponse.swift in Sources */,
 				13ED8FF51F8D5C7800D8A7D0 /* TransactionResponse.swift in Sources */,
 				8B580FFD1FCCA63C0079A2BC /* TransferRequest.swift in Sources */,
+				1F28E188208E6C7100603ED3 /* Result.swift in Sources */,
 				8B580FFA1FCCA3AD0079A2BC /* TransferResponse.swift in Sources */,
 				8B580FF61FCC9D210079A2BC /* AccessToken.swift in Sources */,
+				1F28E189208E6C7400603ED3 /* SbankenError.swift in Sources */,
 				130A324F1F8AAB9B0005BCE2 /* String+urlParameters.swift in Sources */,
 				134239D01F9083C70099842A /* SURLSessionProtocol.swift in Sources */,
 				8B3DD8211F8D2BEF007761E3 /* AccessTokenManager.swift in Sources */,
@@ -409,8 +427,10 @@
 				131491F11F8C9098000B91C2 /* TransactionResponse.swift in Sources */,
 				8B580FFC1FCCA63C0079A2BC /* TransferRequest.swift in Sources */,
 				8B580FF51FCC9C090079A2BC /* AccountsResponse.swift in Sources */,
+				1F28E185208E5B4400603ED3 /* Result.swift in Sources */,
 				8B580FF91FCCA3AD0079A2BC /* TransferResponse.swift in Sources */,
 				8B580FF31FCC9AC80079A2BC /* AccessToken.swift in Sources */,
+				1F28E187208E67DB00603ED3 /* SbankenError.swift in Sources */,
 				138E9E6B1F88F83D000F8A2E /* SbankenClient.swift in Sources */,
 				134AF42E1F8BF80F00114652 /* AccessTokenManager.swift in Sources */,
 				13074D1B1F9081A800427720 /* SURLSessionProtocol.swift in Sources */,
