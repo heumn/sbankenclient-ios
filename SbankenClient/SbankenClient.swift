@@ -26,8 +26,7 @@ public class SbankenClient {
     public init(clientId: String,
                 secret: String,
                 tokenManager: AccessTokenManager = AccessTokenManager(),
-                urlSession: SURLSessionProtocol = URLSession.shared
-        ) {
+                urlSession: SURLSessionProtocol = URLSession.shared) {
         self.clientId = clientId
         self.secret = secret
         self.tokenManager = tokenManager
@@ -44,7 +43,9 @@ public class SbankenClient {
             case .success(let token):
 
                 let urlString = "\(Constants.baseUrl)/Bank/api/v1/Accounts/\(userId)"
-                guard let request = self.urlRequest(urlString, token: token) else { return }
+                guard let request = self.urlRequest(urlString, token: token) else {
+                    fatalError("Unable to parse API endpoint string")
+                }
 
                 self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
