@@ -13,11 +13,11 @@ public class SbankenClient {
     private let clientId: String
     private let secret: String
 
-    private let encoder = JSONEncoder()
-    private let tokenManager: AccessTokenManager = AccessTokenManager()
-    private let urlSession: SURLSessionProtocol = URLSession.shared
+    private lazy var encoder = JSONEncoder()
+    private lazy var tokenManager: AccessTokenManager = AccessTokenManager()
+    private lazy var urlSession: SURLSessionProtocol = URLSession.shared
 
-    private let decoder: JSONDecoder = {
+    private lazy var decoder: JSONDecoder = {
         let jsonDecoder = JSONDecoder()
         jsonDecoder.dateDecodingStrategy = .iso8601
         return jsonDecoder
