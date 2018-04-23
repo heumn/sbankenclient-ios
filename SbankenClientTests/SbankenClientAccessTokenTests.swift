@@ -16,7 +16,7 @@ class SbankenClientAccessTokenTests: XCTestCase {
     var defaultAccountNumber = "97100000000"
     var defaultAccessToken = "TOKEN"
     var client: SbankenClient?
-    
+
     var goodAccessTokenData = """
         {
         "access_token": "TOKEN",
@@ -24,11 +24,11 @@ class SbankenClientAccessTokenTests: XCTestCase {
         "token_type": "TYPE"
         }
     """.data(using: .utf8)
-    
+
     var badAccessTokenData = """
         [tralala
     """.data(using: .utf8)
-    
+
     var goodAccountData = """
         {
             "availableItems": 1,
@@ -46,81 +46,79 @@ class SbankenClientAccessTokenTests: XCTestCase {
             }]
         }
     """.data(using: .utf8)
-    
+
     override func setUp() {
         super.setUp()
         client = SbankenClient(clientId: "CLIENT",
-                            secret: "SECRET")
-        client?.urlSession = mockUrlSession as SURLSessionProtocol
-        client?.tokenManager = tokenManager
+                               secret: "SECRET",
+                               tokenManager: tokenManager,
+                               urlSession: mockUrlSession)
         mockUrlSession.lastRequest = nil
     }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
-    func testSetupSbankenClient() {
-        let newClient = SbankenClient(clientId: "CLIENT", secret: "SECRET")
-        
-        XCTAssertEqual(newClient.clientId, "CLIENT")
-        XCTAssertEqual(newClient.secret, "SECRET")
-    }
-    
+
     func testAccountsGetsTokenFromManager() {
-        _ = client?.accounts(userId: defaultUserId, success: { _ in }, failure: { _ in })
+        _ = client?.accounts(userId: defaultUserId, completion: { _ in })
         let request = mockUrlSession.lastRequest
         XCTAssertEqual(request?.url?.path, "/identityserver/connect/token")
         XCTAssertEqual(request?.httpMethod, "POST")
     }
-    
+
     func testTokenRequestReturnsErrorForBadData() {
         mockUrlSession.tokenResponseData = badAccessTokenData
         let errorExpectation = expectation(description: "Error occurred")
-        _ = client?.accounts(userId: defaultUserId, success: { _ in }, failure: { _ in
+        _ = client?.accounts(userId: defaultUserId, completion: { _ in
             XCTAssert(true, "Error occurred")
             errorExpectation.fulfill()
         })
-        
+
         waitForExpectations(timeout: 10)
     }
-    
+
     func testNilTokenForAccountsReturnsError() {
-        client?.tokenManager.token = AccessToken("TOKEN", expiresIn: -1000, tokenType: "TYPE")
+
+        tokenManager.token = AccessToken("TOKEN", expiresIn: -1000, tokenType: "TYPE")
         var error = false
-        _ = client?.accounts(userId: defaultUserId,
-                             success: { _ in },
-                             failure: { _ in error = true })
-        
+
+        _ = client?.accounts(userId: defaultUserId) { result in
+            switch result {
+            case .success:
+                break
+            case .failure:
+                error = true
+            }
+        }
+
         XCTAssertTrue(error)
     }
-    
+
     func testNilTokenForTransactionsReturnsError() {
-        client?.tokenManager.token = AccessToken("TOKEN", expiresIn: -1000, tokenType: "TYPE")
+        tokenManager.token = AccessToken("TOKEN", expiresIn: -1000, tokenType: "TYPE")
         var error = false
         _ = client?.transactions(userId: defaultUserId,
                                  accountNumber: "97100000000",
                                  startDate: Date(),
                                  endDate: Date(),
                                  index: 0,
-                                 length: 10,
-                                 success: { _ in },
-                                 failure: { _ in error = true })
-        
+                                 length: 10) { result in
+                                    switch result {
+                                    case .success:
+                                        break
+                                    case .failure:
+                                        error = true
+                                    }
+        }
+
         XCTAssertTrue(error)
     }
-    
-    
-    
+
     func testTokenRequestReturnsSuccessForGoodData() {
         mockUrlSession.tokenResponseData = goodAccessTokenData
         mockUrlSession.responseData = goodAccountData
         var error = false
-        _ = client?.accounts(userId: defaultUserId, success: { _ in }, failure: { _ in
+        _ = client?.accounts(userId: defaultUserId, completion: { _ in
             error = true
         })
-        
+
         XCTAssertFalse(error)
     }
 

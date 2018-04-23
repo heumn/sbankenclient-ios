@@ -16,7 +16,7 @@ class SbankenClientTransactionsTests: XCTestCase {
     var defaultAccountNumber = "97100000000"
     var defaultAccessToken: AccessToken = AccessToken("TOKEN", expiresIn: 1000, tokenType: "TYPE")
     var client: SbankenClient?
-    
+
     var goodTransactionsData = """
     {
     "availableItems": 2,
@@ -62,45 +62,45 @@ class SbankenClientTransactionsTests: XCTestCase {
         }]
     }
     """.data(using: .utf8)
-    
+
     var badTransactionsData = """
         {tralala
     """.data(using: .utf8)
-    
+
     override func setUp() {
         super.setUp()
         mockTokenManager.token = defaultAccessToken
         client = SbankenClient(clientId: "CLIENT",
-                            secret: "SECRET")
-        client?.urlSession = mockUrlSession as SURLSessionProtocol
-        client?.tokenManager = mockTokenManager
+                               secret: "SECRET",
+                               tokenManager: mockTokenManager,
+                               urlSession: mockUrlSession)
         mockUrlSession.lastRequest = nil
     }
-    
+
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
+
     func testClientQueriesForTransactions() {
         let request = transactionRequest(userId: defaultUserId, accountNumber: defaultAccountNumber)
-        
+
         XCTAssertEqual(request?.url?.path, "/Bank/api/v2/Transactions/\(defaultUserId)/\(defaultAccountNumber)")
     }
-    
+
     func testTransactionRequestHasRequiredHeaders() {
         let request = transactionRequest(userId: defaultUserId, accountNumber: defaultAccountNumber)
-        
+
         XCTAssertEqual(request?.allHTTPHeaderFields!["Authorization"], "Bearer \(defaultAccessToken.accessToken)")
         XCTAssertEqual(request?.allHTTPHeaderFields!["Accept"], "application/json")
     }
-    
+
     func testTransactionRequestReturnsNilForInvalidUrl() {
         let request = transactionRequest(userId: "|", accountNumber: defaultAccountNumber)
-        
+
         XCTAssertNil(request)
     }
-    
+
     func testTransactionRequestReturnsErrorForBadData() {
         mockUrlSession.responseData = badTransactionsData
         var error = false
@@ -108,10 +108,10 @@ class SbankenClientTransactionsTests: XCTestCase {
                                accountNumber: defaultAccountNumber,
                                success: { _ in },
                                failure: { (returnedError) in error = true })
-        
+
         XCTAssertTrue(error)
     }
-    
+
     func testAccountRequestReturnsSuccessForGoodData() {
         mockUrlSession.responseData = goodTransactionsData
         var response: TransactionResponse?
@@ -120,11 +120,11 @@ class SbankenClientTransactionsTests: XCTestCase {
                                accountNumber: defaultAccountNumber,
                                success: { (transactionResponse) in response = transactionResponse },
                                failure: { (returnedError) in error = true })
-        
+
         XCTAssertFalse(error)
         XCTAssertNotNil(response)
     }
-    
+
     func testAccountRequestReturnsErrorForHttpError() {
         mockUrlSession.responseError = NSError(domain: "error", code: 0, userInfo: nil)
         var error: Error?
@@ -132,20 +132,30 @@ class SbankenClientTransactionsTests: XCTestCase {
                                accountNumber: defaultAccountNumber,
                                success: { _ in },
                                failure: { (returnedError) in error = returnedError })
-        
+
         XCTAssertNotNil(error)
     }
-    
+
     func transactionRequest(userId: String,
                             accountNumber: String,
                             success: @escaping (TransactionResponse) -> Void = {_ in },
                             failure: @escaping (Error?) -> Void = {_ in }) -> URLRequest? {
-        client?.transactions(userId: userId, accountNumber: "97100000000", startDate: Date(), endDate: Date(), index: 0, length: 10, success: { (transactionResponse) in
-            success(transactionResponse)
-        }, failure: { (error) in
-            failure(error)
-        })
-        
+        client?.transactions(userId: userId,
+                             accountNumber: "97100000000",
+                             startDate: Date(),
+                             endDate: Date(),
+                             index: 0,
+                             length: 10) { result in
+                                
+                                switch result {
+                                case .success(let response):
+                                    success(response)
+                                case .failure(let error):
+                                    failure(error)
+                                }
+        }
+
         return mockUrlSession.lastRequest
     }
 }
+

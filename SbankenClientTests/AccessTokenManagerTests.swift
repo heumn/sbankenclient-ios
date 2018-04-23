@@ -18,10 +18,6 @@ class AccessTokenManagerTests: XCTestCase {
     
     let oneWeek = 60 * 60 * 24 * 7
     
-    override func setUp() {
-        super.setUp()
-    }
-    
     func testManagerReturnsEmptyTokenByDefault() {
         assert(manager.token == nil)
     }
@@ -34,10 +30,6 @@ class AccessTokenManagerTests: XCTestCase {
     func testManagerReturnsEmptyTokenPastExpiry() {
         manager.token = AccessToken("TOKEN", expiresIn: -1000, tokenType: "TYPE")
         assert(manager.token == nil)
-    }
-    
-    override func tearDown() {
-        super.tearDown()
     }
 }
 

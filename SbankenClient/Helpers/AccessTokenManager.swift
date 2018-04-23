@@ -11,15 +11,17 @@ import Foundation
 public class AccessTokenManager {
 
     private var _token: AccessToken?
+
+    public init() { }
     
     var token: AccessToken? {
 
         get {
 
-            guard _token?.expiryDate ?? Date.distantPast < Date() else {
-                return nil
+            if (_token != nil && _token!.expiryDate < Date()) {
+                _token = nil
             }
-            
+
             return _token
         }
 

@@ -13,9 +13,9 @@ public class SbankenClient {
     private let clientId: String
     private let secret: String
 
-    private lazy var encoder = JSONEncoder()
-    private lazy var tokenManager: AccessTokenManager = AccessTokenManager()
-    private lazy var urlSession: SURLSessionProtocol = URLSession.shared
+    private let encoder = JSONEncoder()
+    private let tokenManager: AccessTokenManager
+    private let urlSession: SURLSessionProtocol
 
     private lazy var decoder: JSONDecoder = {
         let jsonDecoder = JSONDecoder()
@@ -23,9 +23,15 @@ public class SbankenClient {
         return jsonDecoder
     }()
 
-    public init(clientId: String, secret: String) {
+    public init(clientId: String,
+                secret: String,
+                tokenManager: AccessTokenManager = AccessTokenManager(),
+                urlSession: SURLSessionProtocol = URLSession.shared
+        ) {
         self.clientId = clientId
         self.secret = secret
+        self.tokenManager = tokenManager
+        self.urlSession = urlSession
     }
 
     public func accounts(userId: String, completion: @escaping (Result<[Account], SbankenError>) -> Void) {
