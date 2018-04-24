@@ -51,6 +51,7 @@ public class SbankenClient {
 
                     if let error = error {
                         completion(.failure(SbankenError(error)))
+                        return
                     }
 
                     guard let data = data else {
@@ -78,6 +79,7 @@ public class SbankenClient {
                              completion: @escaping (Result<TransactionResponse, SbankenError>) -> Void) {
 
         accessToken(clientId: clientId, secret: secret) { result in
+
             switch result {
             case .failure(let error):
                 completion(.failure(SbankenError(error)))
@@ -123,7 +125,6 @@ public class SbankenClient {
                          completion: @escaping (Result<TransferResponse, SbankenError>) -> Void) {
 
         accessToken(clientId: clientId, secret: secret) { result in
-
 
             switch result {
             case .failure(let error):
@@ -186,9 +187,8 @@ public class SbankenClient {
 
     private func accessToken(clientId: String, secret: String, completion: @escaping (Result<AccessToken, SbankenError>) -> Void) {
 
-        if tokenManager.token != nil {
-            completion(.success(tokenManager.token!))
-            return
+        if let token = tokenManager.token {
+            completion(.success(token))
         }
 
         let credentialData = "\(clientId):\(secret)".data(using: .utf8)!
@@ -201,16 +201,16 @@ public class SbankenClient {
             "Authorization": "Basic \(encodedCredentials)",
             "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
             "Accept": "application/json"
-            ].forEach { (key, value) in request.setValue(value, forHTTPHeaderField: key) }
+            ].forEach { key, value in request.setValue(value, forHTTPHeaderField: key) }
 
         request.httpMethod = "POST"
         request.httpBody = "grant_type=client_credentials".data(using: .utf8)
 
         self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
 
-
             if let error = error {
                 completion(.failure(SbankenError(error)))
+                return
             }
 
             guard let data = data else {
@@ -220,6 +220,7 @@ public class SbankenClient {
 
             if let token = try? self.decoder.decode(AccessToken.self, from: data) {
                 self.tokenManager.token = token
+                completion(.success(token))
             } else {
                 completion(.failure(.unableToDecodeNetworkResponse))
             }
