@@ -100,6 +100,7 @@ public class SbankenClient {
 
                     if let error = error {
                         completion(.failure(SbankenError(error)))
+                        return
                     }
 
                     guard let data = data else {
@@ -149,6 +150,7 @@ public class SbankenClient {
 
                     if let error = error {
                         completion(.failure(SbankenError(error)))
+                        return
                     }
 
                     guard let data = data else {
@@ -189,6 +191,7 @@ public class SbankenClient {
 
         if let token = tokenManager.token {
             completion(.success(token))
+            return
         }
 
         let credentialData = "\(clientId):\(secret)".data(using: .utf8)!
