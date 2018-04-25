@@ -50,7 +50,7 @@ public class SbankenClient {
                 self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
                     guard error == nil else {
-                        completion(.failure(SbankenError(error)))
+                        completion(.failure(SbankenError(error!)))
                         return
                     }
 
@@ -99,7 +99,7 @@ public class SbankenClient {
                 self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
                     guard error == nil else {
-                        completion(.failure(SbankenError(error)))
+                        completion(.failure(SbankenError(error!)))
                         return
                     }
 
@@ -149,7 +149,7 @@ public class SbankenClient {
                 self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
 
                     guard error == nil else {
-                        completion(.failure(SbankenError(error)))
+                        completion(.failure(SbankenError(error!)))
                         return
                     }
 
@@ -211,8 +211,8 @@ public class SbankenClient {
 
         self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
 
-            if let error = error {
-                completion(.failure(SbankenError(error)))
+            guard error == nil else {
+                completion(.failure(SbankenError(error!)))
                 return
             }
 
@@ -228,6 +228,17 @@ public class SbankenClient {
                 completion(.failure(.unableToDecodeNetworkResponse))
             }
         }).resume()
+    }
+}
+
+extension Data {
+
+    var json: [String: AnyObject]? {
+        do {
+            return try JSONSerialization.jsonObject(with: self, options: []) as? [String: AnyObject]
+        } catch _ {}
+
+        return nil
     }
 }
 
