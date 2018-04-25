@@ -49,7 +49,7 @@ public class SbankenClient {
 
                 self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
-                    if let error = error {
+                    guard error == nil else {
                         completion(.failure(SbankenError(error)))
                         return
                     }
@@ -98,7 +98,7 @@ public class SbankenClient {
 
                 self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
-                    if let error = error {
+                    guard error == nil else {
                         completion(.failure(SbankenError(error)))
                         return
                     }
@@ -148,7 +148,7 @@ public class SbankenClient {
 
                 self.urlSession.dataTask(with: request, completionHandler: { (data, response, error) in
 
-                    if let error = error {
+                    guard error == nil else {
                         completion(.failure(SbankenError(error)))
                         return
                     }
