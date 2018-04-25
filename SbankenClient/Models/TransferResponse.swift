@@ -8,8 +8,8 @@
 
 import Foundation
 
-public struct TransferResponse: Codable {
-    public var errorType: String?
+public class TransferResponse: Codable {
+    public var errorType: Int?
     public var isError: Bool
     public var errorMessage: String?
 }
