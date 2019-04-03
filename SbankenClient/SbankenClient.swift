@@ -231,14 +231,3 @@ public class SbankenClient {
     }
 }
 
-// To debug
-extension Data {
-
-    var json: [String: AnyObject]? {
-        do {
-            return try JSONSerialization.jsonObject(with: self, options: []) as? [String: AnyObject]
-        } catch _ {}
-
-        return nil
-    }
-}
