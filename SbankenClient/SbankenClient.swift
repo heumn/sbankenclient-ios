@@ -42,10 +42,9 @@ public class SbankenClient {
                 completion(.failure(SbankenError(error)))
             case .success(let token):
 
-                let urlString = "\(Constants.baseUrl)/Bank/api/v1/Accounts/\(userId)"
-                guard let request = self.urlRequest(urlString, token: token) else {
-                    fatalError("Unable to parse API endpoint string")
-                }
+                let urlString = "\(Constants.baseUrl)/Bank/api/v1/Accounts"
+                guard var request = self.urlRequest(urlString, token: token) else { return }
+                request.setValue(userId, forHTTPHeaderField: "CustomerID")
 
                 self.urlSession.dataTask(with: request, completionHandler: { data, response, error in
 
@@ -193,18 +192,23 @@ public class SbankenClient {
             completion(.success(token))
             return
         }
+        let characterSet = NSMutableCharacterSet.alphanumeric()
+        characterSet.addCharacters(in: "-_.!~*'()")
 
-        let credentialData = "\(clientId):\(secret)".data(using: .utf8)!
-        let encodedCredentials = credentialData.base64EncodedString()
+        let encodedClientId = clientId.addingPercentEncoding(withAllowedCharacters: characterSet as CharacterSet)
+        let encodedsecret = secret.addingPercentEncoding(withAllowedCharacters: characterSet as CharacterSet)
 
-        let url = URL(string: "\(Constants.baseUrl)/identityserver/connect/token")
+        let credentialData = "\(encodedClientId!):\(encodedsecret!)".data(using: .utf8)!
+        let encodedCredentials = credentialData.base64EncodedString(options: Data.Base64EncodingOptions(rawValue: 0))
+
+        let url = URL(string: "\(Constants.baseAuthUrl)/identityserver/connect/token")
         var request = URLRequest(url: url!)
 
         [
             "Authorization": "Basic \(encodedCredentials)",
             "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
             "Accept": "application/json"
-            ].forEach { key, value in request.setValue(value, forHTTPHeaderField: key) }
+            ].forEach { (key, value) in request.setValue(value, forHTTPHeaderField: key) }
 
         request.httpMethod = "POST"
         request.httpBody = "grant_type=client_credentials".data(using: .utf8)

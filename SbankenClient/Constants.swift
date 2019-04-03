@@ -10,4 +10,5 @@ import Foundation
 
 class Constants {
     static let baseUrl = "https://api.sbanken.no"
+    static let baseAuthUrl = "https://auth.sbanken.no"
 }
